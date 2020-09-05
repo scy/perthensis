@@ -1,6 +1,6 @@
 # Perthensis: an asynchronous framework for MicroPython.
 
-The Perthensis library uses [`uasyncio`](https://docs.micropython.org/en/latest/library/uasyncio.html) functionality present in (very) recent versions of [MicroPython](https://micropython.org/) to simplify running multiple (background) tasks on your board.
+The Perthensis library uses [`uasyncio`](https://docs.micropython.org/en/latest/library/uasyncio.html) functionality present in recent versions of [MicroPython](https://micropython.org/) to simplify running multiple (background) tasks on your board.
 
 But it's not just about the async stuff.
 Additionally, it should be a kind of framework or toolset to make everyday MicroPython tasks easier.
@@ -38,8 +38,7 @@ sch.run_forever()
 ## How does it work?
 
 In version 3.5, Python started supporting `async`/`await` syntax for [coroutines](https://en.wikipedia.org/wiki/Coroutine).
-And MicroPython will have a subset of that functionality available in version 1.13.
-There has not been a stable release of it yet, but you can already take advantage of it when using a nightly build.
+And MicroPython has a subset of that functionality available in version 1.13 and newer.
 
 It's important to know that these are not threads.
 They do not actually run in parallel.
@@ -60,6 +59,10 @@ You can of course also wait for incoming network connections, changes in the val
 * Preserve the freedom of the library's user as much as feasible.
 * Be modular.
 * Generate synergies between these modules, but try not to make them depend on one another.
+
+## Requirements
+
+* MicroPython ≥ 1.13
 
 ## Status
 
@@ -91,14 +94,6 @@ There's [the Unix port of MicroPython](https://github.com/micropython/micropytho
 I'd say:
 Try it, but don't expect too much.
 It's more of a problem with MicroPython itself than with this library.
-
-### Do I have to use MicroPython nightly builds for Perthensis?
-
-Currently, yes.
-The last "stable" version they released is [1.12](https://github.com/micropython/micropython/releases/tag/v1.12) which doesn't include it yet.
-It should be available in 1.13 and higher, once that becomes available.
-
-However, MicroPython provides nightly builds on their normal download page, alongside the "stable" builds, so it's not really more complicated to install them.
 
 ### I have a feature request!
 
