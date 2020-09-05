@@ -75,6 +75,13 @@ Since I'll be working on a paid project that involves this library, expect that 
 
 ## FAQ
 
+### Can I use Perthensis on all board types supported by MicroPython?
+
+Probably.
+At least that’s the goal.
+
+If you find something that doesn’t work with all types of boards, please open an issue about it!
+
 ### Can I use Perthensis with CircuitPython?
 
 Honestly, I don't know, because I haven't used CircuitPython yet, but I'd like to support it.
