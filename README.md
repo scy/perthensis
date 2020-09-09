@@ -66,7 +66,7 @@ You can of course also wait for incoming network connections, changes in the val
 
 ## Status
 
-The scheduler can create new tasks (but not cancel them yet), and there is an LED heartbeat class.
+The scheduler can create new tasks (but not cancel them yet), there is an LED heartbeat class and a pin debouncer.
 Also, the package's module loading deals gracefully with module files not being present.
 This means you only have to copy those modules to your board you actually want to use.
 
