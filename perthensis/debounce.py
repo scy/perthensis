@@ -52,8 +52,9 @@ class TimerDebounce:
             if pin._settle_wait is not None:  # pin is being debounced
                 if pin._settle_wait <= 0:     # it has settled now
                     pin._settle_wait = None
-                    # TODO: only call if the value has changed
-                    pin._callback(pin_id, pin._value)
+                    if pin._value != pin._previous:
+                        pin._previous = pin._value
+                        pin._callback(pin_id, pin._value)
                 else:
                     # Since no interrupt sets this to None, we can safely
                     # assume that it's an int.
@@ -103,6 +104,7 @@ class DebouncedPin:
         self._callback = callback
         self._threshold = int(threshold_ms)
         self._settle_wait = None
+        self._previous = None
         self._value = None
 
         # Configure the pin and its interrupt handler.
