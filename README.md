@@ -8,16 +8,19 @@ Additionally, it should be a kind of framework or toolset to make everyday Micro
 ## Example: Heartbeat and counter
 
 ```python
-from perthensis import Scheduler, Heartbeat
+from perthensis import Scheduler, Heartbeat, DebouncedRotary, TimerDebounce
+
 
 # This class manages your background tasks.
 sch = Scheduler()
+
 
 # Perthensis comes with a convenient class to blink LEDs in a heartbeat rhythm.
 # Initialize it and tell it to blink on pin 33.
 hb = Heartbeat(33)
 # Then tell the scheduler to run its "beat" method as a background task.
 sch.create_task(hb.beat)
+
 
 # Let's write a simple background task that prints ever increasing numbers.
 async def counter(scheduler):
@@ -30,6 +33,35 @@ async def counter(scheduler):
         x += 1
 # Launch that task, too. This is a shorthand way of calling create_task():
 sch(counter)
+
+
+# Next, let's define a variable to be manipulated via a rotary encoder.
+n = 0
+
+def rotary_callback(modify):
+    global n
+    n += modify
+
+# The rotary is connected to pins 4 and 5 and they need a pull-up.
+# Pin inversion (via `invert=True`) and reversing the direction
+# (via `reverse=True`) are available, too.
+rotary = DebouncedRotary(4, 5, rotary_callback, Pin.PULL_UP)
+
+
+# The TimerDebounce class can debounce multiple pins with just one
+# hardware timer. Here, we use timer 3. The timer will be started and stopped
+# dynamically on demand (only when debouncing) to save CPU cycles.
+tdb = TimerDebounce(3)
+
+# When the button on pin 36 is pushed, print the value of our rotary variable.
+def push_callback(pin_id, pin_value):
+    global n
+    print(n)
+
+# You can modify the time the button needs to have a constant value by passing
+# the `threshold` parameter (in milliseconds).
+tdb.add_pin(36, push_callback, Pin.PULL_UP)
+
 
 # Give control to the scheduler. This method will never return.
 sch.run_forever()
@@ -66,7 +98,9 @@ You can of course also wait for incoming network connections, changes in the val
 
 ## Status
 
-The scheduler can create new tasks (but not cancel them yet), there is an LED heartbeat class and a pin debouncer.
+The scheduler can create new tasks (but not cancel them yet), there is an LED heartbeat class, a pin debouncer and a reading class for rotary encoders.
+More documentation for them is planned, but the source code is commented.
+
 Also, the package's module loading deals gracefully with module files not being present.
 This means you only have to copy those modules to your board you actually want to use.
 

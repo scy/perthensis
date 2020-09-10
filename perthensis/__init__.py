@@ -2,7 +2,7 @@ __all__ = []
 
 # Try to import the important classes from our submodules.
 for module, classes in [
-            ('debounce', ['TimerDebounce']),
+            ('debounce', ['DebouncedRotary', 'TimerDebounce']),
             ('heartbeat', ['Heartbeat']),
             ('scheduler', ['Scheduler']),
         ]:

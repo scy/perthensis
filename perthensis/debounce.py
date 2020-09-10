@@ -122,3 +122,59 @@ class DebouncedPin:
             # specific exception. :( Best thing we can do is probably to just
             # ignore it, however sad that is.
             pass
+
+
+class DebouncedRotary:
+    """Read a rotary encoder in a debounced way."""
+
+    # These are currently not used, but might be in an upcoming version.
+    VALID_TRANSITIONS = (False, True, True, False, True, False, False, True,
+                         True, False, False, True, False, True, True, False)
+
+    def __init__(self, clk_id, data_id, callback,
+                 pull=None, invert=False, reverse=False):
+        """Create a new debouncer for a single rotary encoder.
+
+        args:
+            clk_id: Which pin number is the "CLK" pin of the encoder connected
+                to? If yours is of the "ABC" style, find one of the two
+                contacts it has that connect to the third while turning it and
+                use that.
+            data_id: Which pin number is the "DATA" pin connected to? If yours
+                is of the "ABC" style, choose the other of the two contacts
+                that connect to a third while turning and use that.
+            callback: A function or method that will be called with either 1 or
+                -1 as its single parameter every time the encoder is being
+                moved one step.
+            pull: If your two encoder pins should be pulled high or low, set
+                this to one of the ``Pin.PULL_*`` constants.
+            invert: If your encoder pins are normally low and become high while
+                the encoder is being moved, set this to True.
+            reverse: Set this to True to reverse how the turning direction is
+                being interpreted.
+        """
+        self._clk = Pin(clk_id, Pin.IN, pull)
+        self._dat = Pin(data_id, Pin.IN, pull)
+        self._invert = 0x03 if invert else 0x00
+        self._reverse = -1 if reverse else 1
+        self._callback = callback
+        self._state = 0x00
+
+        self._clk.irq(self._irq_handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
+        self._dat.irq(self._irq_handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
+
+    def _irq_handler(self, pin):
+        self._state = (
+                (self._state << 2)  # move the previous state to the left
+                # and then add the current values
+                | (((self._dat.value() << 1) | self._clk.value())
+                   ^ self._invert)  # invert both if we need to
+                ) & 0x0f  # and make sure to only keep the rightmost 4 bit
+        try:
+            if self._state == 0x07:  # moved clockwise
+                schedule(self._callback, self._reverse)
+            elif self._state == 0x0b:  # moved counterclockwise
+                schedule(self._callback, -1 * self._reverse)
+        except RuntimeError:
+            # Again, this might just be "schedule queue full". Ignore it. :(
+            pass
