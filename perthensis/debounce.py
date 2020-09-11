@@ -125,7 +125,10 @@ class DebouncedPin:
 
 
 class DebouncedRotary:
-    """Read a rotary encoder in a debounced way."""
+    """Read a rotary encoder in a debounced way.
+
+    This implementation borrows a lot from
+    <https://www.best-microcontroller-projects.com/rotary-encoder.html>."""
 
     # These are currently not used, but might be in an upcoming version.
     VALID_TRANSITIONS = (False, True, True, False, True, False, False, True,
