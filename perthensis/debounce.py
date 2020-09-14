@@ -130,7 +130,6 @@ class DebouncedRotary:
     This implementation borrows a lot from
     <https://www.best-microcontroller-projects.com/rotary-encoder.html>."""
 
-    # These are currently not used, but might be in an upcoming version.
     VALID_TRANSITIONS = (False, True, True, False, True, False, False, True,
                          True, False, False, True, False, True, True, False)
 
@@ -167,17 +166,19 @@ class DebouncedRotary:
         self._dat.irq(self._irq_handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
     def _irq_handler(self, pin):
-        self._state = (
+        newstate = (
                 (self._state << 2)  # move the previous state to the left
                 # and then add the current values
                 | (((self._dat.value() << 1) | self._clk.value())
                    ^ self._invert)  # invert both if we need to
                 ) & 0x0f  # and make sure to only keep the rightmost 4 bit
-        try:
-            if self._state == 0x07:  # moved clockwise
-                schedule(self._callback, self._reverse)
-            elif self._state == 0x0b:  # moved counterclockwise
-                schedule(self._callback, -1 * self._reverse)
-        except RuntimeError:
-            # Again, this might just be "schedule queue full". Ignore it. :(
-            pass
+        if self.VALID_TRANSITIONS[newstate]:
+            self._state = newstate
+            try:
+                if self._state == 0x07:  # moved clockwise
+                    schedule(self._callback, self._reverse)
+                elif self._state == 0x0b:  # moved counterclockwise
+                    schedule(self._callback, -1 * self._reverse)
+            except RuntimeError:
+                # Again, this might just be "schedule queue full". Ignore. :(
+                pass
