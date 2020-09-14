@@ -171,13 +171,13 @@ class DebouncedRotary:
                 # and then add the current values
                 | (((self._dat.value() << 1) | self._clk.value())
                    ^ self._invert)  # invert both if we need to
-                ) & 0x0f  # and make sure to only keep the rightmost 4 bit
-        if self.VALID_TRANSITIONS[newstate]:
+                ) & 0xff  # and make sure to only keep the rightmost 8 bit
+        if self.VALID_TRANSITIONS[newstate & 0x0f]:
             self._state = newstate
             try:
-                if self._state == 0x07:  # moved clockwise
+                if self._state == 0x87:  # moved clockwise
                     schedule(self._callback, self._reverse)
-                elif self._state == 0x0b:  # moved counterclockwise
+                elif self._state == 0x4b:  # moved counterclockwise
                     schedule(self._callback, -1 * self._reverse)
             except RuntimeError:
                 # Again, this might just be "schedule queue full". Ignore. :(
