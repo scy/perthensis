@@ -134,7 +134,7 @@ class DebouncedRotary:
                          True, False, False, True, False, True, True, False)
 
     def __init__(self, clk_id, data_id, callback,
-                 pull=None, invert=False, reverse=False):
+                 pull=None, fast=False, invert=False, reverse=False):
         """Create a new debouncer for a single rotary encoder.
 
         args:
@@ -150,6 +150,12 @@ class DebouncedRotary:
                 moved one step.
             pull: If your two encoder pins should be pulled high or low, set
                 this to one of the ``Pin.PULL_*`` constants.
+            fast: Normally, the encoder is debounced using an extra-stable
+                table-based state machine. It should eliminate jitter, but
+                slightly reduces performance and reactiveness. If you have a
+                rather stable or externally debounced encoder, you can set this
+                to True to choose a simpler implementation that may not catch
+                some jitter.
             invert: If your encoder pins are normally low and become high while
                 the encoder is being moved, set this to True.
             reverse: Set this to True to reverse how the turning direction is
@@ -162,10 +168,31 @@ class DebouncedRotary:
         self._callback = callback
         self._state = 0x00
 
-        self._clk.irq(self._irq_handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
-        self._dat.irq(self._irq_handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
+        handler = self._fast_irq_handler if fast else self._stable_irq_handler
+        self._clk.irq(handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
+        self._dat.irq(handler, Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
-    def _irq_handler(self, pin):
+    # The IRQ handlers are copy-pasted for performance.
+    # If you change one, make sure to apply your changes to the other one, too.
+    def _fast_irq_handler(self, pin):
+        self._state = (
+                (self._state << 2)  # move the previous state to the left
+                # and then add the current values
+                | (((self._dat.value() << 1) | self._clk.value())
+                   ^ self._invert)  # invert both if we need to
+                ) & 0x0f  # and make sure to only keep the rightmost 4 bit
+        try:
+            if self._state == 0x07:  # moved clockwise
+                schedule(self._callback, self._reverse)
+            elif self._state == 0x0b:  # moved counterclockwise
+                schedule(self._callback, -1 * self._reverse)
+        except RuntimeError:
+            # Again, this might just be "schedule queue full". Ignore. :(
+            pass
+
+    # The IRQ handlers are copy-pasted for performance.
+    # If you change one, make sure to apply your changes to the other one, too.
+    def _stable_irq_handler(self, pin):
         newstate = (
                 (self._state << 2)  # move the previous state to the left
                 # and then add the current values
