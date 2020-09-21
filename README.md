@@ -1,3 +1,7 @@
+# ➡ Moved to Codeberg
+
+**This repository now lives at <https://codeberg.org/scy/perthensis>. See [Why are you leaving GitHub?](https://codeberg.org/scy/me/src/branch/main/FAQ.md#user-content-why-are-you-leaving-github) for my reasons. Please update your bookmarks accordingly and/or notify the creator(s) of whatever brought you here.**
+
 # Perthensis: an asynchronous framework for MicroPython.
 
 The Perthensis library uses [`uasyncio`](https://docs.micropython.org/en/latest/library/uasyncio.html) functionality present in recent versions of [MicroPython](https://micropython.org/) to simplify running multiple (background) tasks on your board.
